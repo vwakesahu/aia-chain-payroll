@@ -18,9 +18,9 @@ const HeroSection = () => {
               </p>
             </div>
             <h1 className="text-[80px] leading-[1.1] font-medium tracking-tight">
-              Private,
+              Encrypted
               <br />
-              Protected
+              Transactions
             </h1>
           </div>
         </div>
@@ -29,8 +29,8 @@ const HeroSection = () => {
           <div className="relative flex items-center justify-center">
             <Image
               src="/hero.svg"
-              width={600}
-              height={600}
+              width={800}
+              height={800}
               alt="Hero Image"
               className="object-contain"
               priority
