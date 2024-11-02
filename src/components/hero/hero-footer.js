@@ -2,7 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArrowUpNarrowWide, ChevronRight, ChevronRightIcon, Github } from "lucide-react";
+import {
+  ArrowUpNarrowWide,
+  ChevronRight,
+  ChevronRightIcon,
+  Github,
+} from "lucide-react";
 import { Button } from "../ui/button";
 
 const HeroFooter = () => {
@@ -20,48 +25,37 @@ const HeroFooter = () => {
 
   return (
     <div>
-     <div className="relative bg-[#F3F3F3] rounded-[35px] overflow-hidden p-8 py-6 mb-8 h-[85vh] grid place-items-center">
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.03]" 
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 25px 25px, black 2%, transparent 2%),
-            radial-gradient(circle at 75px 75px, black 2%, transparent 2%)
-          `,
-          backgroundSize: '100px 100px',
-        }}
-      />
+      <div className="relative bg-[#F3F3F3] rounded-[35px] overflow-hidden p-8 py-6 mb-8 h-[85vh] grid place-items-center">
+        {/* Light Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#F3F3F3]/80" />
 
-      {/* Light Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#F3F3F3]/80" />
-
-      {/* Content */}
-      <div className="relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full grid place-items-center p-1.5">
-            <Image src="/logob.svg" width={50} height={50} alt="Hero Image" />
-          </div>
-          <div>
-            <h1 className="text-5xl font-medium text-center">
-              <span className="text-black">Automated </span>
-              <span className="text-gray-400">Payroll</span>
-              <br />
-              <span className="text-gray-400">Distribution </span>
-              <span className="text-black">System</span>
-            </h1>
-          </div>
-        </div>
-
-        <div className="grid place-items-center mt-6">
-          <button className="group rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-300 bg-black text-white shadow hover:opacity-90 pl-4">
-            <p className="py-2">View Demo</p>
-            <div className="h-10 w-10 rounded-full bg-white overflow-hidden grid place-items-center transition-transform duration-300 group-hover:translate-x-0.5">
-              <ChevronRight className="text-black" />
+        {/* Content */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full grid place-items-center p-1.5">
+              <Image src="/logob.svg" width={50} height={50} alt="Hero Image" />
             </div>
-          </button>
+            <div>
+              <h1 className="text-5xl font-medium text-center">
+                <span className="text-black">Automated </span>
+                <span className="text-gray-400">Payroll</span>
+                <br />
+                <span className="text-gray-400">Distribution </span>
+                <span className="text-black">System</span>
+              </h1>
+            </div>
+          </div>
+
+          <div className="grid place-items-center mt-6">
+            <button className="group rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-300 bg-black text-white shadow hover:opacity-90 pl-4">
+              <p className="py-2">View Demo</p>
+              <div className="h-10 w-10 rounded-full bg-white overflow-hidden grid place-items-center transition-transform duration-300 group-hover:translate-x-0.5">
+                <ChevronRight className="text-black" />
+              </div>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
       <motion.div
         className="flex justify-between items-center pb-6"
         initial="initial"

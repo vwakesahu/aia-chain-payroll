@@ -1,10 +1,19 @@
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion } from "framer-motion";
-import { useState } from 'react';
 
 const HeroHeader = () => {
   const [hoveredLink, setHoveredLink] = useState(null);
+  const [activeRoute, setActiveRoute] = useState('/');
+  const pathname = usePathname();
+  
+  useEffect(() => {
+    if (pathname) {
+      setActiveRoute(pathname);
+    }
+  }, [pathname]);
 
   const fadeInVariants = {
     initial: { opacity: 0, y: -10 },
@@ -16,34 +25,43 @@ const HeroHeader = () => {
     hover: { color: "#4B5563" }
   };
 
-  const buttonVariants = {
-    initial: { backgroundColor: "#000000" },
-    hover: { 
-      backgroundColor: "#1F2937",
-      transition: { duration: 0.2 }
-    }
-  };
+  // Navigation items configuration
+  const navItems = [
+    { path: '/distribute', label: 'Distribute' },
+    { path: '/withdraw', label: 'Withdraw' },
+    { path: '/deposit', label: 'Deposit' }
+  ];
 
-  const logoVariants = {
-    hover: { 
-      scale: 1.02,
-      transition: { type: "tween", duration: 0.2 }
-    }
+  const renderNavItem = (item) => {
+    const isActive = activeRoute === item.path;
+    
+    return (
+      <Link key={item.path} href={item.path} className="no-underline">
+        <motion.div
+          className={`
+            h-9 rounded-full grid place-items-center px-4
+            transition-colors duration-200
+            ${isActive ? 'bg-black text-white hover:bg-gray-800' : 'bg-white hover:bg-gray-50 text-black'}
+          `}
+        >
+          <span className={`
+            
+            ${isActive ? 'text-white' : 'text-black'}
+          `}>{item.label}</span>
+        </motion.div>
+      </Link>
+    );
   };
 
   return (
     <motion.div 
       className="flex justify-between"
-      initial="initial"
-      animate="animate"
-      variants={fadeInVariants}
-      transition={{ duration: 0.3 }}
     >
       <Link href="/" className="no-underline">
         <motion.div 
-          className="bg-white p-1.5 rounded-full px-2.5 pr-4 hover:shadow-sm"
-          whileHover="hover"
-          variants={logoVariants}
+          className={`bg-white p-1.5 rounded-full px-2.5 pr-4 hover:shadow-sm ${
+            activeRoute === '/' ? 'ring-2 ring-blue-600' : ''
+          }`}
         >
           <div className="flex items-center gap-4">
             <div className="bg-black w-9 h-9 rounded-full grid place-items-center p-1.5">
@@ -54,44 +72,9 @@ const HeroHeader = () => {
         </motion.div>
       </Link>
 
-      <div className="bg-white p-1.5 rounded-full pl-4 text-sm">
-        <div className="flex items-center gap-4">
-          <Link href="/distribute" className="no-underline">
-            <motion.p
-              variants={linkVariants}
-              initial="initial"
-              whileHover="hover"
-              onHoverStart={() => setHoveredLink('distribute')}
-              onHoverEnd={() => setHoveredLink(null)}
-              className="font-medium"
-            >
-              Distribute
-            </motion.p>
-          </Link>
-          
-          <Link href="/withdraw" className="no-underline">
-            <motion.p
-              variants={linkVariants}
-              initial="initial"
-              whileHover="hover"
-              onHoverStart={() => setHoveredLink('withdraw')}
-              onHoverEnd={() => setHoveredLink(null)}
-              className="font-medium"
-            >
-              Withdraw
-            </motion.p>
-          </Link>
-          
-          <Link href="/deposit" className="no-underline">
-            <motion.div
-              className="bg-black h-9 rounded-full grid place-items-center p-1.5 text-white px-2.5"
-              variants={buttonVariants}
-              whileHover="hover"
-              initial="initial"
-            >
-              <span className="font-medium">Deposit</span>
-            </motion.div>
-          </Link>
+      <div className="bg-white p-1.5 rounded-full text-sm">
+        <div className="flex items-center gap-2">
+          {navItems.map(renderNavItem)}
         </div>
       </div>
     </motion.div>

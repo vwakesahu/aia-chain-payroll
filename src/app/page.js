@@ -8,7 +8,7 @@ import React from "react";
 
 const Page = () => {
   return (
-    <div className="h-screen p-8">
+    <div className="min-h-screen p-8">
       <HeroSection />
       <HeadingWithAvatars />
       <Features />
