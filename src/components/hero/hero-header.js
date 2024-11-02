@@ -13,17 +13,10 @@ const HeroHeader = () => {
     if (pathname) {
       setActiveRoute(pathname);
     }
+    if(pathname === '/') {
+      setActiveRoute('/deposit');
+    }
   }, [pathname]);
-
-  const fadeInVariants = {
-    initial: { opacity: 0, y: -10 },
-    animate: { opacity: 1, y: 0 },
-  };
-
-  const linkVariants = {
-    initial: { color: "#000000" },
-    hover: { color: "#4B5563" }
-  };
 
   // Navigation items configuration
   const navItems = [
@@ -45,7 +38,6 @@ const HeroHeader = () => {
           `}
         >
           <span className={`
-            
             ${isActive ? 'text-white' : 'text-black'}
           `}>{item.label}</span>
         </motion.div>

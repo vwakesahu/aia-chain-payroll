@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpNarrowWide,
   ChevronRight,
@@ -9,9 +9,50 @@ import {
   Github,
 } from "lucide-react";
 import { Button } from "../ui/button";
+// import { EncryptionTypes, FhenixClient } from "fhenixjs";
+import { useWalletContext } from "@/privy/walletContext";
 
 const HeroFooter = () => {
+  const [fhenixClient, setFhenixClient] = useState(null);
+  const [error, setError] = useState(null);
   const [hoveredLink, setHoveredLink] = useState(null);
+  const { signer } = useWalletContext();
+
+  // useEffect(() => {
+  //   const initFhenix = async () => {
+  //     try {
+  //       console.log('signer', signer)
+  //       const provider = signer.provider;
+  //       console.log('provider',provider)
+  //       const { FhenixClient } = await import("fhenixjs");
+  //       const client = new FhenixClient({
+  //         provider,
+  //       });
+
+  //       setFhenixClient(client);
+  //       console.log(
+  //         "Fhenix client initialized with provider:",
+  //         client
+  //       );
+  //     } catch (err) {
+  //       setError(err.message);
+  //       console.error("Error initializing:", err);
+  //     }
+  //   };
+
+  //   initFhenix();
+  // }, [signer]);
+
+//   const handleViewDemo = async () => {
+//     if (!fhenixClient) {
+//       return;
+//     }
+// console.log(fhenixClient)
+
+//     // to encrypt data for a Fhenix contract
+//     let encrypted = await fhenixClient.encrypt(5, EncryptionTypes.uint8);
+//     console.log(encrypted);
+//   };
 
   const fadeInVariants = {
     initial: { opacity: 0, y: -10 },
@@ -47,7 +88,10 @@ const HeroFooter = () => {
           </div>
 
           <div className="grid place-items-center mt-6">
-            <button className="group rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-300 bg-black text-white shadow hover:opacity-90 pl-4">
+            <button
+              className="group rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-300 bg-black text-white shadow hover:opacity-90 pl-4"
+              // onClick={handleViewDemo}
+            >
               <p className="py-2">View Demo</p>
               <div className="h-10 w-10 rounded-full bg-white overflow-hidden grid place-items-center transition-transform duration-300 group-hover:translate-x-0.5">
                 <ChevronRight className="text-black" />
