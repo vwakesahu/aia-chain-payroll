@@ -14,15 +14,15 @@ const HeroHeader = () => {
       setActiveRoute(pathname);
     }
     if(pathname === '/') {
-      setActiveRoute('/deposit');
+      setActiveRoute('/withdraw');
     }
   }, [pathname]);
 
   // Navigation items configuration
   const navItems = [
+    { path: '/deposit', label: 'Deposit' },
     { path: '/distribute', label: 'Distribute' },
     { path: '/withdraw', label: 'Withdraw' },
-    { path: '/deposit', label: 'Deposit' }
   ];
 
   const renderNavItem = (item) => {
