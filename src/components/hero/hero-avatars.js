@@ -4,10 +4,10 @@ import Image from 'next/image';
 const HeadingWithAvatars = () => {
   return (
     <div className='py-32 grid place-items-center'>
-      <div className="text-[66px] text-center leading-[1.1] tracking-[-0.02em]">
+      <div className="text-[50px] text-center leading-[1.1] tracking-[-0.02em]">
         Built with
         <br />
-        protocols{' '}
+        technologies{' '}
         <span className="inline-flex items-center align-middle">
           <Image
             src="/user1.png"
@@ -36,7 +36,7 @@ const HeadingWithAvatars = () => {
         </span>
         {' '}for
         <br />
-        Confidential Tranfers.
+        <span className='underline underline-offset-4'>confidential </span>tranfers.
       </div>
     </div>
   );
