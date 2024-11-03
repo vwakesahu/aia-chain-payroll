@@ -1,5 +1,5 @@
 export const chainsName = { aia: "AIA" };
-export const chainsId ={AIA: 1320, FHENIX: 8008135};
+export const chainsId = { AIA: 1320, FHENIX: 8008135, INCO: 21097 };
 
 export const aiaNetwork = {
   id: 1320,
@@ -21,7 +21,7 @@ export const aiaNetwork = {
   blockExplorers: {
     default: {
       name: "AIA Chain Explorer Testnet",
-      url: "https://testnet.aiascan.com/", 
+      url: "https://testnet.aiascan.com/",
     },
   },
 };
@@ -55,5 +55,30 @@ export const fhenixNetwork = {
   contracts: {
     bridge: "https://bridge.helium.fhenix.zone/",
     faucet: "https://get-helium.fhenix.zone/",
+  },
+};
+
+export const incoNetwork = {
+  id: 21097,
+  network: "Rivest",
+  name: "Rivest Testnet",
+  nativeCurrency: {
+    name: "INCO",
+    symbol: "INCO",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://validator.rivest.inco.org"],
+    },
+    public: {
+      http: ["https://validator.rivest.inco.org"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Explorer",
+      url: "https://explorer.rivest.inco.org",
+    },
   },
 };

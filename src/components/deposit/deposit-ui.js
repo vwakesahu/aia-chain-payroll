@@ -38,7 +38,6 @@ const DepositUI = () => {
     if (!w0) return;
     const initializeWallet = async () => {
       try {
-        await changeWallet(w0, chainsId.AIA);
         await getBalance();
       } catch (error) {
         setBalanceError("Failed to initialize wallet");

@@ -12,10 +12,6 @@ const WithdrawUI = () => {
   const [address, setAddress] = useState("");
   const [error, setError] = useState("");
   const { w0 } = useWalletContext();
-  useEffect(() => {
-    if (!w0) return;
-    changeWallet(w0, chainsId.FHENIX);
-  }, [w0]);
 
   console.log(w0?.chainId);
 
