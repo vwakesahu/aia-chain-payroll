@@ -1,87 +1,97 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import HeroHeader from "../hero/hero-header";
+import { useWalletContext } from "@/privy/walletContext";
+import { changeWallet } from "@/utils/changeWallet";
+import { chainsId } from "@/privy/chains";
 
 const WithdrawUI = () => {
   // State management
-  const [amount, setAmount] = useState('');
-  const [address, setAddress] = useState('');
-  const [error, setError] = useState('');
-  
+  const [amount, setAmount] = useState("");
+  const [address, setAddress] = useState("");
+  const [error, setError] = useState("");
+  const { w0 } = useWalletContext();
+  useEffect(() => {
+    if(!w0) return;
+    changeWallet(w0, chainsId.FHENIX);
+  }, [w0]);
+
+  console.log(w0?.chainId)
+
   // Constants
   const AVAILABLE_BALANCE = 1000; // USDC
   const TOTAL_WITHDRAWALS = 8.2; // Million
   const AVERAGE_WITHDRAWAL = 652;
-  
+
   // Handle amount input
   const handleAmountChange = (value) => {
     // Remove non-numeric characters except decimal point
-    const cleanedValue = value.replace(/[^0-9.]/g, '');
-    
+    const cleanedValue = value.replace(/[^0-9.]/g, "");
+
     // Prevent multiple decimal points
     if ((cleanedValue.match(/\./g) || []).length > 1) return;
-    
+
     // Limit decimal places to 2
-    if (cleanedValue.includes('.')) {
-      const [whole, decimal] = cleanedValue.split('.');
+    if (cleanedValue.includes(".")) {
+      const [whole, decimal] = cleanedValue.split(".");
       if (decimal?.length > 2) return;
     }
-    
+
     setAmount(cleanedValue);
-    setError('');
+    setError("");
   };
-  
+
   // Handle address input
   const handleAddressChange = (value) => {
     setAddress(value);
-    setError('');
+    setError("");
   };
-  
+
   // Handle max button click
   const handleMaxClick = () => {
     setAmount(AVAILABLE_BALANCE.toString());
-    setError('');
+    setError("");
   };
-  
+
   // Validate Ethereum address
   const isValidAddress = (address) => {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
   };
-  
+
   // Handle withdrawal preview
   const handlePreviewWithdrawal = () => {
     const numAmount = parseFloat(amount);
-    
+
     if (!amount) {
-      setError('Please enter an amount');
+      setError("Please enter an amount");
       return;
     }
-    
+
     if (isNaN(numAmount) || numAmount <= 0) {
-      setError('Please enter a valid amount');
+      setError("Please enter a valid amount");
       return;
     }
-    
+
     if (numAmount > AVAILABLE_BALANCE) {
-      setError('Amount exceeds available balance');
+      setError("Amount exceeds available balance");
       return;
     }
-    
+
     if (!address) {
-      setError('Please enter a recipient address');
+      setError("Please enter a recipient address");
       return;
     }
-    
+
     if (!isValidAddress(address)) {
-      setError('Please enter a valid Ethereum address');
+      setError("Please enter a valid Ethereum address");
       return;
     }
-    
+
     // Handle withdrawal preview logic here
-    console.log('Preview withdrawal:', {
+    console.log("Preview withdrawal:", {
       amount: numAmount,
-      address
+      address,
     });
   };
 
@@ -113,10 +123,12 @@ const WithdrawUI = () => {
                   <label className="block text-sm text-gray-500 mb-2">
                     Amount
                   </label>
-                  <div className={cn(
-                    "bg-white rounded-2xl p-4 border",
-                    error && error.includes('amount') && "border-red-500"
-                  )}>
+                  <div
+                    className={cn(
+                      "bg-white rounded-2xl p-4 border",
+                      error && error.includes("amount") && "border-red-500"
+                    )}
+                  >
                     <div className="flex items-center gap-3">
                       <span className="text-xl text-gray-400">$</span>
                       <input
@@ -126,7 +138,7 @@ const WithdrawUI = () => {
                         placeholder="Enter amount to withdraw"
                         className="w-full text-xl bg-transparent outline-none"
                       />
-                      <button 
+                      <button
                         onClick={handleMaxClick}
                         className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
                       >
@@ -140,10 +152,12 @@ const WithdrawUI = () => {
                   <label className="block text-sm text-gray-500 mb-2">
                     Recipient Address
                   </label>
-                  <div className={cn(
-                    "bg-white rounded-2xl p-4 border",
-                    error && error.includes('address') && "border-red-500"
-                  )}>
+                  <div
+                    className={cn(
+                      "bg-white rounded-2xl p-4 border",
+                      error && error.includes("address") && "border-red-500"
+                    )}
+                  >
                     <input
                       type="text"
                       value={address}
@@ -156,11 +170,13 @@ const WithdrawUI = () => {
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Available Balance</span>
-                  <span className="font-medium">{AVAILABLE_BALANCE.toLocaleString()} USDC</span>
+                  <span className="font-medium">
+                    {AVAILABLE_BALANCE.toLocaleString()} USDC
+                  </span>
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={handlePreviewWithdrawal}
                 className="w-full bg-black text-white font-medium py-4 rounded-2xl hover:bg-black/90 transition-colors mt-8"
               >
@@ -175,7 +191,9 @@ const WithdrawUI = () => {
             <div className="bg-white rounded-[35px] p-8">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">Total Withdrawals</p>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Total Withdrawals
+                  </p>
                   <p className="text-3xl font-medium">${TOTAL_WITHDRAWALS}M</p>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
@@ -192,7 +210,9 @@ const WithdrawUI = () => {
                 </div>
                 <div>
                   <p className="mb-3">Average Withdrawal</p>
-                  <div className="text-5xl font-medium">${AVERAGE_WITHDRAWAL}</div>
+                  <div className="text-5xl font-medium">
+                    ${AVERAGE_WITHDRAWAL}
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,68 +1,153 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import HeroHeader from "../hero/hero-header";
+import { useWalletContext } from "@/privy/walletContext";
+import { changeWallet } from "@/utils/changeWallet";
+import { chainsId } from "@/privy/chains";
+import { AIAABI, AIACONTRACTADDRESS, USDCABI, USDCADDRESS } from "@/utils/contracts";
+import { Contract, ethers } from "ethers";
+import { Button } from "../ui/button";
+import { RefreshCw } from "lucide-react";
+import ConnectedAddress from "../connected-address";
 
 const DepositUI = () => {
   // State management
-  const [mode, setMode] = useState('deposit'); // 'deposit' or 'mint'
-  const [amount, setAmount] = useState('');
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState("deposit");
+  const [amount, setAmount] = useState("");
+  const [error, setError] = useState("");
+  const [balance, setBalance] = useState(0);
   
-  // Constants
-  const AVAILABLE_BALANCE = 1000; // USDC
-  const TOTAL_DEPOSITS = 12.4; // Million
-  const CURRENT_APY = 4.87;
+  // Loading states
+  const [isBalanceLoading, setIsBalanceLoading] = useState(true);
+  const [isDepositLoading, setIsDepositLoading] = useState(false);
+  const [isMintLoading, setIsMintLoading] = useState(false);
   
-  // Handle amount input
-  const handleAmountChange = (value) => {
-    // Remove non-numeric characters except decimal point
-    const cleanedValue = value.replace(/[^0-9.]/g, '');
+  // Error states
+  const [balanceError, setBalanceError] = useState("");
+  const [transactionError, setTransactionError] = useState("");
+
+  const { w0, signer, address } = useWalletContext();
+
+  useEffect(() => {
+    if (!w0) return;
+    const initializeWallet = async () => {
+      try {
+        await changeWallet(w0, chainsId.AIA);
+        await getBalance();
+      } catch (error) {
+        setBalanceError("Failed to initialize wallet");
+        console.error("Wallet initialization error:", error);
+      }
+    };
+    initializeWallet();
+  }, [w0]);
+
+  const getBalance = async () => {
+    if (!signer || !address) return;
     
-    // Prevent multiple decimal points
+    setIsBalanceLoading(true);
+    setBalanceError("");
+    
+    try {
+      const usdcContract = new Contract(USDCADDRESS, USDCABI, signer);
+      const balanceWei = await usdcContract.balanceOf(address);
+      console.log(balanceWei)
+      const balanceFormatted = parseFloat(ethers.formatUnits(balanceWei, 18)); 
+      setBalance(balanceFormatted);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      setBalanceError("Failed to fetch balance");
+    } finally {
+      setIsBalanceLoading(false);
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!amount) {
+      setError("Please enter an amount");
+      return;
+    }
+
+    setIsDepositLoading(true);
+    setTransactionError("");
+    
+    try {
+      const value = ethers.parseUnits(amount, "ether");
+      const tokenBridge = new Contract(AIACONTRACTADDRESS, AIAABI, signer);
+      
+      const res = await tokenBridge.lockTokens(value, { gasLimit: 7920027 });
+      const tx = await res.getTransaction();
+      await tx.wait();
+      
+      await getBalance();
+      setAmount("");
+    } catch (error) {
+      console.error("Deposit failed:", error);
+      setTransactionError("Deposit failed. Please try again.");
+    } finally {
+      setIsDepositLoading(false);
+    }
+  };
+
+  const handlePayBtn = async () => {
+    if (!amount) {
+      setError("Please enter an amount");
+      return;
+    }
+
+    setIsMintLoading(true);
+    setTransactionError("");
+    
+    try {
+      const usdcContract = new Contract(USDCADDRESS, USDCABI, signer);
+      
+      const response = await usdcContract.transferFromOwner(
+        AIACONTRACTADDRESS,
+        { gasLimit: 1000000 }
+      );
+      const tx = await response.getTransaction();
+      await tx.wait();
+      
+      await getBalance();
+      setAmount("");
+    } catch (error) {
+      console.error("Mint failed:", error);
+      setTransactionError("Mint failed. Please try again.");
+    } finally {
+      setIsMintLoading(false);
+    }
+  };
+
+  const handleAmountChange = (value) => {
+    const cleanedValue = value.replace(/[^0-9.]/g, "");
     if ((cleanedValue.match(/\./g) || []).length > 1) return;
     
-    // Limit decimal places to 2
-    if (cleanedValue.includes('.')) {
-      const [whole, decimal] = cleanedValue.split('.');
+    if (cleanedValue.includes(".")) {
+      const [whole, decimal] = cleanedValue.split(".");
       if (decimal?.length > 2) return;
     }
-    
+
     setAmount(cleanedValue);
-    setError('');
+    setError("");
   };
-  
-  // Handle max button click
+
   const handleMaxClick = () => {
-    setAmount(AVAILABLE_BALANCE.toString());
-    setError('');
+    setAmount(balance.toString());
+    setError("");
   };
-  
-  // Handle deposit preview
+
   const handlePreviewDeposit = () => {
-    const numAmount = parseFloat(amount);
-    
-    if (!amount) {
-      setError('Please enter an amount');
-      return;
+    if (mode === "mint") {
+      handlePayBtn();
+    } else {
+      handleDeposit();
     }
-    
-    if (isNaN(numAmount) || numAmount <= 0) {
-      setError('Please enter a valid amount');
-      return;
-    }
-    
-    if (numAmount > AVAILABLE_BALANCE) {
-      setError('Amount exceeds available balance');
-      return;
-    }
-    
-    // Handle deposit preview logic here
-    console.log('Preview deposit:', {
-      mode,
-      amount: numAmount
-    });
   };
+
+  // Constants
+  const TOTAL_DEPOSITS = 12.4; // Million
+  const CURRENT_APY = 4.87;
 
   return (
     <div>
@@ -77,31 +162,33 @@ const DepositUI = () => {
             <div className="flex items-center justify-between mb-12">
               <h2 className="text-2xl font-medium">Deposit</h2>
               <div className="bg-[#F3F3F3] rounded-full p-1 inline-flex">
-                <button 
+                <button
                   className={cn(
                     "px-5 py-2 rounded-full text-sm transition-all",
-                    mode === 'mint' ? 'bg-black text-white' : 'text-gray-400'
+                    mode === "mint" ? "bg-black text-white" : "text-gray-400"
                   )}
-                  onClick={() => setMode('mint')}
+                  onClick={() => setMode("mint")}
                 >
                   Mint
                 </button>
-                <button 
+                <button
                   className={cn(
                     "px-5 py-2 rounded-full text-sm transition-all",
-                    mode === 'deposit' ? 'bg-black text-white' : 'text-gray-400'
+                    mode === "deposit" ? "bg-black text-white" : "text-gray-400"
                   )}
-                  onClick={() => setMode('deposit')}
+                  onClick={() => setMode("deposit")}
                 >
                   Deposit
                 </button>
               </div>
             </div>
 
-            {/* Error Alert */}
-            {error && (
+            {/* Error Alerts */}
+            {(error || transactionError || balanceError) && (
               <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  {error || transactionError || balanceError}
+                </AlertDescription>
               </Alert>
             )}
 
@@ -121,28 +208,62 @@ const DepositUI = () => {
                         onChange={(e) => handleAmountChange(e.target.value)}
                         placeholder="Enter amount"
                         className="w-full text-xl bg-transparent outline-none"
+                        disabled={isDepositLoading || isMintLoading}
                       />
-                      <button 
+                      <button
                         onClick={handleMaxClick}
                         className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                        disabled={isDepositLoading || isMintLoading}
                       >
                         MAX
                       </button>
                     </div>
                   </div>
                 </div>
+                <div className="flex items-center justify-between text-gray-500">Connected Address: <ConnectedAddress /></div>
 
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Available Balance</span>
-                  <span className="font-medium">{AVAILABLE_BALANCE.toLocaleString()} USDC</span>
+                  <div className="flex items-center gap-2">
+                    {isBalanceLoading ? (
+                      <span className="animate-pulse">Loading...</span>
+                    ) : (
+                      <span className="font-medium">
+                        $ {balance.toLocaleString()}
+                      </span>
+                    )}
+                    <button
+                      onClick={getBalance}
+                      disabled={isBalanceLoading}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <RefreshCw 
+                        className={cn(
+                          "w-4 h-4",
+                          isBalanceLoading && "animate-spin"
+                        )}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={handlePreviewDeposit}
-                className="w-full bg-black text-white font-medium py-4 rounded-2xl hover:bg-black/90 transition-colors mt-8"
+                disabled={isDepositLoading || isMintLoading}
+                className={cn(
+                  "w-full bg-black text-white font-medium py-4 rounded-2xl hover:bg-black/90 transition-colors mt-8",
+                  (isDepositLoading || isMintLoading) && "opacity-50 cursor-not-allowed"
+                )}
               >
-                 {mode === 'deposit' ? 'Preview Deposit' : 'Mint'}
+                {isDepositLoading || isMintLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    {mode === "deposit" ? "Depositing..." : "Minting..."}
+                  </span>
+                ) : (
+                  mode === "deposit" ? "Preview Deposit" : "Mint"
+                )}
               </button>
             </div>
           </div>

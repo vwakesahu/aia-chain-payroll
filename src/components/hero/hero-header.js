@@ -9,6 +9,7 @@ const HeroHeader = () => {
   const [activeRoute, setActiveRoute] = useState('/');
   const pathname = usePathname();
   
+  
   useEffect(() => {
     if (pathname) {
       setActiveRoute(pathname);

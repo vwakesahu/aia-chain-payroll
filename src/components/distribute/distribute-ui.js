@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
-import { Calendar as CalendarIcon, HeartHandshake, Plus, Trash2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import {
+  Calendar as CalendarIcon,
+  HeartHandshake,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -10,18 +15,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import HeroHeader from '../hero/hero-header';
+import HeroHeader from "../hero/hero-header";
+import { chainsId } from "@/privy/chains";
+import { changeWallet } from "@/utils/changeWallet";
+import { useWalletContext } from "@/privy/walletContext";
+import { EncryptionTypes } from "fhenixjs";
+import { toHexString } from "@/utils/toHexString";
 
 const DistributeUI = () => {
-  const [mode, setMode] = useState('multiple');
+  const [mode, setMode] = useState("multiple");
   const [distributions, setDistributions] = useState([
-    { id: 1, address: '', amount: '' },
-    { id: 2, address: '', amount: '' }
+    { id: 1, address: "", amount: "" },
+    { id: 2, address: "", amount: "" },
   ]);
   const [lockTime, setLockTime] = useState();
   const [dilute, setDilute] = useState();
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+  const [fhenixClient, setFhenixClient] = useState(null);
+
+  const { w0, signer } = useWalletContext();
+
+  useEffect(() => {
+    if (!w0) return;
+    changeWallet(w0, chainsId.FHENIX);
+  }, [w0]);
+
+
+  console.log(w0?.chainId);
+
   const totalAmount = distributions.reduce((sum, dist) => {
     const amount = parseFloat(dist.amount) || 0;
     return sum + amount;
@@ -29,61 +50,76 @@ const DistributeUI = () => {
 
   const handleModeToggle = (newMode) => {
     setMode(newMode);
-    if (newMode === 'single') {
-      setDistributions([{ id: 1, address: '', amount: '' }]);
+    if (newMode === "single") {
+      setDistributions([{ id: 1, address: "", amount: "" }]);
     }
   };
 
   const handleDistributionChange = (id, field, value) => {
-    setDistributions(prevDist => 
-      prevDist.map(dist => 
+    setDistributions((prevDist) =>
+      prevDist.map((dist) =>
         dist.id === id ? { ...dist, [field]: value } : dist
       )
     );
-    setError('');
+    setError("");
   };
 
   const handleAddDistribution = () => {
-    if (mode === 'multiple') {
-      const newId = Math.max(...distributions.map(d => d.id)) + 1;
-      setDistributions([...distributions, { id: newId, address: '', amount: '' }]);
+    if (mode === "multiple") {
+      const newId = Math.max(...distributions.map((d) => d.id)) + 1;
+      setDistributions([
+        ...distributions,
+        { id: newId, address: "", amount: "" },
+      ]);
     }
   };
 
   const handleRemoveDistribution = (id) => {
     if (distributions.length > 1) {
-      setDistributions(prevDist => prevDist.filter(dist => dist.id !== id));
+      setDistributions((prevDist) => prevDist.filter((dist) => dist.id !== id));
     }
   };
 
-  const handleSubmit = () => {
-    const isAddressesValid = distributions.every(dist => 
-      /^0x[a-fA-F0-9]{16,}$/.test(dist.address)
-    );
-    const isAmountsValid = distributions.every(dist => 
-      !isNaN(dist.amount) && parseFloat(dist.amount) > 0
-    );
-    
-    if (!isAddressesValid) {
-      setError('Please enter valid wallet addresses');
-      return;
-    }
-    if (!isAmountsValid) {
-      setError('Please enter valid amounts');
-      return;
-    }
-    if (!lockTime || !dilute) {
-      setError('Please set both lock time and dilute time');
-      return;
-    }
+  const handleSubmit = async () => {
+    const provider = signer.provider;
+        console.log("provider", provider);
+        const { FhenixClient } = await import("fhenixjs");
+        const client = new FhenixClient({
+          provider,
+        });
+    const encrypted = await client.encrypt(300, EncryptionTypes.uint32);
+    const encryptedHex = toHexString(encrypted.data);
+    console.log(encryptedHex);
 
-    console.log('Submitting distribution:', {
-      mode,
-      distributions,
-      lockTime,
-      dilute,
-      totalAmount
-    });
+    
+
+    // const isAddressesValid = distributions.every((dist) =>
+    //   /^0x[a-fA-F0-9]{16,}$/.test(dist.address)
+    // );
+    // const isAmountsValid = distributions.every(
+    //   (dist) => !isNaN(dist.amount) && parseFloat(dist.amount) > 0
+    // );
+
+    // if (!isAddressesValid) {
+    //   setError("Please enter valid wallet addresses");
+    //   return;
+    // }
+    // if (!isAmountsValid) {
+    //   setError("Please enter valid amounts");
+    //   return;
+    // }
+    // if (!lockTime || !dilute) {
+    //   setError("Please set both lock time and dilute time");
+    //   return;
+    // }
+
+    // console.log("Submitting distribution:", {
+    //   mode,
+    //   distributions,
+    //   lockTime,
+    //   dilute,
+    //   totalAmount,
+    // });
   };
 
   return (
@@ -97,15 +133,21 @@ const DistributeUI = () => {
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-medium">Distribute</h2>
               <div className="bg-[#F3F3F3] rounded-full inline-flex">
-                <button 
-                  className={`px-6 py-3 text-sm rounded-full ${mode === 'single' ? 'bg-black text-white' : 'text-gray-400'}`}
-                  onClick={() => handleModeToggle('single')}
+                <button
+                  className={`px-6 py-3 text-sm rounded-full ${
+                    mode === "single" ? "bg-black text-white" : "text-gray-400"
+                  }`}
+                  onClick={() => handleModeToggle("single")}
                 >
                   Single
                 </button>
-                <button 
-                  className={`px-6 py-3 text-sm rounded-full ${mode === 'multiple' ? 'bg-black text-white' : 'text-gray-400'}`}
-                  onClick={() => handleModeToggle('multiple')}
+                <button
+                  className={`px-6 py-3 text-sm rounded-full ${
+                    mode === "multiple"
+                      ? "bg-black text-white"
+                      : "text-gray-400"
+                  }`}
+                  onClick={() => handleModeToggle("multiple")}
                 >
                   Multiple
                 </button>
@@ -136,7 +178,13 @@ const DistributeUI = () => {
                             <input
                               type="text"
                               value={dist.address}
-                              onChange={(e) => handleDistributionChange(dist.id, 'address', e.target.value)}
+                              onChange={(e) =>
+                                handleDistributionChange(
+                                  dist.id,
+                                  "address",
+                                  e.target.value
+                                )
+                              }
                               placeholder="0x0C2E8090a89A0af9"
                               className="w-full text-base bg-transparent outline-none"
                             />
@@ -154,7 +202,13 @@ const DistributeUI = () => {
                               <input
                                 type="number"
                                 value={dist.amount}
-                                onChange={(e) => handleDistributionChange(dist.id, 'amount', e.target.value)}
+                                onChange={(e) =>
+                                  handleDistributionChange(
+                                    dist.id,
+                                    "amount",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="300"
                                 className="w-full text-base bg-transparent outline-none"
                               />
@@ -163,9 +217,11 @@ const DistributeUI = () => {
                         </div>
                       </div>
                     </div>
-                    {mode === 'multiple' && (
-                      <button 
-                        className={`p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all ${dist.id === 1 ? 'mt-8' : 'mt-4'}`}
+                    {mode === "multiple" && (
+                      <button
+                        className={`p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all ${
+                          dist.id === 1 ? "mt-8" : "mt-4"
+                        }`}
                         onClick={() => handleRemoveDistribution(dist.id)}
                       >
                         <Trash2 className="w-5 h-5" />
@@ -175,8 +231,8 @@ const DistributeUI = () => {
                 ))}
 
                 {/* Add More Button */}
-                {mode === 'multiple' && (
-                  <button 
+                {mode === "multiple" && (
+                  <button
                     className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors"
                     onClick={handleAddDistribution}
                   >
@@ -202,7 +258,11 @@ const DistributeUI = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {lockTime ? format(lockTime, "PPP") : <span>Pick a date</span>}
+                        {lockTime ? (
+                          format(lockTime, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -229,7 +289,11 @@ const DistributeUI = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dilute ? format(dilute, "PPP") : <span>Pick a date</span>}
+                        {dilute ? (
+                          format(dilute, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -247,9 +311,11 @@ const DistributeUI = () => {
               <div className="mt-8">
                 <div className="flex justify-between text-sm mb-4">
                   <span className="text-gray-500">Total Amount</span>
-                  <span className="font-medium">{totalAmount.toFixed(2)} USDC</span>
+                  <span className="font-medium">
+                    {totalAmount.toFixed(2)} USDC
+                  </span>
                 </div>
-                <button 
+                <button
                   className="w-full bg-black text-white font-medium py-4 rounded-2xl hover:bg-black/90 transition-colors"
                   onClick={handleSubmit}
                 >
@@ -265,7 +331,9 @@ const DistributeUI = () => {
             <div className="bg-white rounded-[35px] p-8">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">Total Distributed</p>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Total Distributed
+                  </p>
                   <p className="text-3xl font-medium">$5.2M</p>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">

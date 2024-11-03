@@ -1,58 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import {
-  ArrowUpNarrowWide,
-  ChevronRight,
-  ChevronRightIcon,
-  Github,
-} from "lucide-react";
-import { Button } from "../ui/button";
-// import { EncryptionTypes, FhenixClient } from "fhenixjs";
-import { useWalletContext } from "@/privy/walletContext";
+import { ChevronRight, Github, X } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 const HeroFooter = () => {
-  const [fhenixClient, setFhenixClient] = useState(null);
-  const [error, setError] = useState(null);
-  const [hoveredLink, setHoveredLink] = useState(null);
-  const { signer } = useWalletContext();
-
-  // useEffect(() => {
-  //   const initFhenix = async () => {
-  //     try {
-  //       console.log('signer', signer)
-  //       const provider = signer.provider;
-  //       console.log('provider',provider)
-  //       const { FhenixClient } = await import("fhenixjs");
-  //       const client = new FhenixClient({
-  //         provider,
-  //       });
-
-  //       setFhenixClient(client);
-  //       console.log(
-  //         "Fhenix client initialized with provider:",
-  //         client
-  //       );
-  //     } catch (err) {
-  //       setError(err.message);
-  //       console.error("Error initializing:", err);
-  //     }
-  //   };
-
-  //   initFhenix();
-  // }, [signer]);
-
-//   const handleViewDemo = async () => {
-//     if (!fhenixClient) {
-//       return;
-//     }
-// console.log(fhenixClient)
-
-//     // to encrypt data for a Fhenix contract
-//     let encrypted = await fhenixClient.encrypt(5, EncryptionTypes.uint8);
-//     console.log(encrypted);
-//   };
+  const [showVideo, setShowVideo] = useState(false);
 
   const fadeInVariants = {
     initial: { opacity: 0, y: -10 },
@@ -90,7 +50,7 @@ const HeroFooter = () => {
           <div className="grid place-items-center mt-6">
             <button
               className="group rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-300 bg-black text-white shadow hover:opacity-90 pl-4"
-              // onClick={handleViewDemo}
+              onClick={() => setShowVideo(true)}
             >
               <p className="py-2">View Demo</p>
               <div className="h-10 w-10 rounded-full bg-white overflow-hidden grid place-items-center transition-transform duration-300 group-hover:translate-x-0.5">
@@ -100,6 +60,7 @@ const HeroFooter = () => {
           </div>
         </div>
       </div>
+
       <motion.div
         className="flex justify-between items-center pb-6"
         initial="initial"
@@ -150,8 +111,6 @@ const HeroFooter = () => {
               variants={linkVariants}
               initial="initial"
               whileHover="hover"
-              onHoverStart={() => setHoveredLink("github")}
-              onHoverEnd={() => setHoveredLink(null)}
             >
               <Github size={20} />
               <span className="font-medium">GitHub</span>
@@ -159,6 +118,34 @@ const HeroFooter = () => {
           </Link>
         </motion.div>
       </motion.div>
+
+      {/* Video Dialog */}
+      <Dialog open={showVideo} onOpenChange={setShowVideo}>
+        <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Protocol Demo</DialogTitle>
+            <DialogDescription>
+              Watch how our <span className="text-black">Payroll Protocol</span> works.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative pt-[56.25%]">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src="https://www.youtube.com/embed/5shVuHiOoNY?si=x_zVkpaj0d5sl6of" // Replace YOUR_VIDEO_ID with actual YouTube video ID
+              title="Protocol Demo"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          <button 
+            onClick={() => setShowVideo(false)}
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

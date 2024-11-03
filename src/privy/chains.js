@@ -1,4 +1,5 @@
 export const chainsName = { aia: "AIA" };
+export const chainsId ={AIA: 1320, FHENIX: 8008135};
 
 export const aiaNetwork = {
   id: 1320,
