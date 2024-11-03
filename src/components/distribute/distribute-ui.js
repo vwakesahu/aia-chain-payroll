@@ -23,6 +23,8 @@ import { useWalletContext } from "@/privy/walletContext";
 import { EncryptionTypes } from "fhenixjs";
 import { toHexString } from "@/utils/toHexString";
 import axios from "axios";
+import { AIAABI, AIACONTRACTADDRESS } from "@/utils/contracts";
+import { Contract } from "ethers";
 
 const DistributeUI = () => {
   const [mode, setMode] = useState("multiple");
@@ -113,6 +115,28 @@ const DistributeUI = () => {
       setIsLoading(true);
       setError("");
 
+      const tokenBridgeContract = await new Contract(
+        AIACONTRACTADDRESS,
+        AIAABI,
+        signer
+      );
+
+      const addressArray = [
+        distributions[0].address,
+        distributions[1].address,
+        distributions[2].address,
+      ];
+
+      console.log(addressArray);
+
+      const res = await tokenBridgeContract.distributeFunds(
+        distributions[0].address,
+        distributions[1].address,
+        distributions[2].address,
+        '0x50040000000000007f4403adf656b9824846225f24b9da35033a8fb38c4b8ada8b498c5137b71787ceb6446fc7650e8f0d4705ff2595fc296d1aacb3575ea05d4185f7da1b33344df53f52af572a2c3e0c91280618b5057014d046fe21d7a184814cf259f5f8ef132b9a5e3149cc3bced10b0d957eae33a30dd390724d1178bf5bd08056f06826c5fb91bb7527639a',
+        { gasLimit: 7920027 }
+      );
+
       const { data } = await axios.post(
         "http://localhost:8000/distribute-funds",
         {
@@ -129,6 +153,7 @@ const DistributeUI = () => {
       setIsSuccess(true);
       console.log(data);
     } catch (err) {
+      console.log(err)
       setError(err.response?.data?.message || "Failed to process distribution");
     } finally {
       setIsLoading(false);

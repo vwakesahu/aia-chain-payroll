@@ -76,7 +76,7 @@ const WithdrawUI = () => {
       await tx.wait();
       setTransactionHash(tx.hash);
       // Refresh balance after successful withdrawal
-      fetchBalance();
+      // fetchBalance();
     } catch (err) {
       console.error("Withdrawal error:", err);
       setError(
