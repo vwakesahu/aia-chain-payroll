@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "AIA Hackathon",
+  title: "Payroll Protocol",
   description: "AIA Hackathon",
 };
 
