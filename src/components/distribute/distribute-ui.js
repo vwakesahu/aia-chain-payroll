@@ -138,7 +138,7 @@ const DistributeUI = () => {
       );
 
       const { data } = await axios.post(
-        "http://localhost:8000/distribute-funds",
+        "/api/distribute-funds",
         {
           user: address,
           userAddress1: distributions[0].address,

@@ -28,7 +28,7 @@ const WithdrawUI = () => {
     setError("");
 
     try {
-      const response = await fetch(`http://localhost:8000/balance/${address}`);
+      const response = await fetch(`/api/balance/${address}`);
       const data = await response.json();
 
       if (data.success) {
