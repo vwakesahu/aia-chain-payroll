@@ -4,6 +4,7 @@ import {
   HeartHandshake,
   Plus,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,21 +22,34 @@ import { changeWallet } from "@/utils/changeWallet";
 import { useWalletContext } from "@/privy/walletContext";
 import { EncryptionTypes } from "fhenixjs";
 import { toHexString } from "@/utils/toHexString";
+import axios from "axios";
 
 const DistributeUI = () => {
   const [mode, setMode] = useState("multiple");
   const [distributions, setDistributions] = useState([
-    { id: 1, address: "", amount: "" },
-    { id: 2, address: "", amount: "" },
+    {
+      id: 1,
+      address: "0xfCefe53c7012a075b8a711df391100d9c431c468",
+      amount: "300",
+    },
+    {
+      id: 2,
+      address: "0xa44366bAA26296c1409AD1e284264212029F02f1",
+      amount: "300",
+    },
+    {
+      id: 3,
+      address: "0xc1d91b49A1B3D1324E93F86778C44a03f1063f1b",
+      amount: "400",
+    },
   ]);
   const [lockTime, setLockTime] = useState();
   const [dilute, setDilute] = useState();
   const [error, setError] = useState("");
-  const [fhenixClient, setFhenixClient] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const { w0, signer } = useWalletContext();
-
-  console.log(w0?.chainId);
+  const { w0, signer, address } = useWalletContext();
 
   const totalAmount = distributions.reduce((sum, dist) => {
     const amount = parseFloat(dist.amount) || 0;
@@ -56,6 +70,7 @@ const DistributeUI = () => {
       )
     );
     setError("");
+    setIsSuccess(false);
   };
 
   const handleAddDistribution = () => {
@@ -75,31 +90,49 @@ const DistributeUI = () => {
   };
 
   const handleSubmit = async () => {
-    // const isAddressesValid = distributions.every((dist) =>
-    //   /^0x[a-fA-F0-9]{16,}$/.test(dist.address)
-    // );
-    // const isAmountsValid = distributions.every(
-    //   (dist) => !isNaN(dist.amount) && parseFloat(dist.amount) > 0
-    // );
-    // if (!isAddressesValid) {
-    //   setError("Please enter valid wallet addresses");
-    //   return;
-    // }
-    // if (!isAmountsValid) {
-    //   setError("Please enter valid amounts");
-    //   return;
-    // }
-    // if (!lockTime || !dilute) {
-    //   setError("Please set both lock time and dilute time");
-    //   return;
-    // }
-    // console.log("Submitting distribution:", {
-    //   mode,
-    //   distributions,
-    //   lockTime,
-    //   dilute,
-    //   totalAmount,
-    // });
+    const isAddressesValid = distributions.every((dist) =>
+      /^0x[a-fA-F0-9]{16,}$/.test(dist.address)
+    );
+    const isAmountsValid = distributions.every(
+      (dist) => !isNaN(dist.amount) && parseFloat(dist.amount) > 0
+    );
+    if (!isAddressesValid) {
+      setError("Please enter valid wallet addresses");
+      return;
+    }
+    if (!isAmountsValid) {
+      setError("Please enter valid amounts");
+      return;
+    }
+    if (!lockTime || !dilute) {
+      setError("Please set both lock time and dilute time");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError("");
+
+      const { data } = await axios.post(
+        "http://localhost:8000/distribute-funds",
+        {
+          user: address,
+          userAddress1: distributions[0].address,
+          userAddresses2: distributions[1].address,
+          userAddresses3: distributions[2].address,
+          amount1: distributions[0].amount,
+          amount2: distributions[1].amount,
+          amount3: distributions[2].amount,
+        }
+      );
+
+      setIsSuccess(true);
+      console.log(data);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to process distribution");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -118,6 +151,7 @@ const DistributeUI = () => {
                     mode === "single" ? "bg-black text-white" : "text-gray-400"
                   }`}
                   onClick={() => handleModeToggle("single")}
+                  disabled={isLoading}
                 >
                   Single
                 </button>
@@ -128,6 +162,7 @@ const DistributeUI = () => {
                       : "text-gray-400"
                   }`}
                   onClick={() => handleModeToggle("multiple")}
+                  disabled={isLoading}
                 >
                   Multiple
                 </button>
@@ -138,6 +173,15 @@ const DistributeUI = () => {
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Success Alert */}
+            {isSuccess && (
+              <Alert className="mb-4 bg-green-50 border-green-200">
+                <AlertDescription className="text-green-800">
+                  Distribution processed successfully!
+                </AlertDescription>
               </Alert>
             )}
 
@@ -167,6 +211,7 @@ const DistributeUI = () => {
                               }
                               placeholder="0x0C2E8090a89A0af9"
                               className="w-full text-base bg-transparent outline-none"
+                              disabled={isLoading}
                             />
                           </div>
                         </div>
@@ -191,6 +236,7 @@ const DistributeUI = () => {
                                 }
                                 placeholder="300"
                                 className="w-full text-base bg-transparent outline-none"
+                                disabled={isLoading}
                               />
                             </div>
                           </div>
@@ -203,6 +249,7 @@ const DistributeUI = () => {
                           dist.id === 1 ? "mt-8" : "mt-4"
                         }`}
                         onClick={() => handleRemoveDistribution(dist.id)}
+                        disabled={isLoading}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -213,8 +260,9 @@ const DistributeUI = () => {
                 {/* Add More Button */}
                 {mode === "multiple" && (
                   <button
-                    className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleAddDistribution}
+                    disabled={isLoading}
                   >
                     <Plus className="w-5 h-5" />
                     <span>Add Recipient</span>
@@ -236,6 +284,7 @@ const DistributeUI = () => {
                           "w-full justify-start text-left font-normal h-14 rounded-2xl",
                           !lockTime && "text-gray-400"
                         )}
+                        disabled={isLoading}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {lockTime ? (
@@ -267,6 +316,7 @@ const DistributeUI = () => {
                           "w-full justify-start text-left font-normal h-14 rounded-2xl",
                           !dilute && "text-gray-400"
                         )}
+                        disabled={isLoading}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {dilute ? (
@@ -296,10 +346,23 @@ const DistributeUI = () => {
                   </span>
                 </div>
                 <button
-                  className="w-full bg-black text-white font-medium py-4 rounded-2xl hover:bg-black/90 transition-colors"
+                  className={`w-full bg-black text-white font-medium py-4 rounded-2xl transition-colors flex items-center justify-center gap-2
+                    ${
+                      isLoading
+                        ? "opacity-75 cursor-not-allowed"
+                        : "hover:bg-black/90"
+                    }`}
                   onClick={handleSubmit}
+                  disabled={isLoading}
                 >
-                  Submit Distribution
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processing Distribution...
+                    </>
+                  ) : (
+                    "Submit Distribution"
+                  )}
                 </button>
               </div>
             </div>
@@ -309,9 +372,7 @@ const DistributeUI = () => {
           <div className="col-span-5 grid grid-rows-2 gap-8">
             {/* Top Info Card */}
             <div className="bg-white rounded-[35px] p-8 relative overflow-hidden">
-              {/* Bento-style background elements */}
               <div className="absolute inset-0 pointer-events-none">
-                {/* Main grid pattern */}
                 <div className="absolute bottom-0 right-0 w-40 h-28 grid grid-cols-3 gap-2 p-4">
                   <div className="w-full h-full rounded-lg bg-gray-50"></div>
                   <div className="w-full h-full rounded-lg border-2 border-gray-100"></div>
@@ -320,7 +381,6 @@ const DistributeUI = () => {
                   <div className="w-full h-full rounded-lg bg-gray-50/80"></div>
                   <div className="w-full h-full rounded-lg border-2 border-gray-100 rotate-3"></div>
                 </div>
-                {/* Floating elements */}
                 <div className="absolute bottom-4 right-36 w-6 h-6 rounded-full border-2 border-gray-100"></div>
                 <div className="absolute bottom-16 right-28 w-4 h-4 rounded-full bg-gray-50/60"></div>
               </div>

@@ -1,94 +1,90 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
 import HeroHeader from "../hero/hero-header";
 import { useWalletContext } from "@/privy/walletContext";
-import { changeWallet } from "@/utils/changeWallet";
-import { chainsId } from "@/privy/chains";
+import { Contract } from "ethers";
+import { AIAABI, AIACONTRACTADDRESS } from "@/utils/contracts";
+import ConnectedAddress from "../connected-address";
+import { Loader2, RefreshCw } from "lucide-react";
 
 const WithdrawUI = () => {
   // State management
-  const [amount, setAmount] = useState("");
-  const [address, setAddress] = useState("");
   const [error, setError] = useState("");
-  const { w0 } = useWalletContext();
-
-  console.log(w0?.chainId);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false);
+  const [transactionHash, setTransactionHash] = useState("");
+  const [balance, setBalance] = useState(null);
+  const { w0, signer, address } = useWalletContext();
 
   // Constants
-  const AVAILABLE_BALANCE = 1000; // USDC
   const TOTAL_WITHDRAWALS = 8.2; // Million
   const AVERAGE_WITHDRAWAL = 652;
 
-  // Handle amount input
-  const handleAmountChange = (value) => {
-    // Remove non-numeric characters except decimal point
-    const cleanedValue = value.replace(/[^0-9.]/g, "");
+  // Fetch balance function
+  const fetchBalance = async () => {
+    if (!address) return;
 
-    // Prevent multiple decimal points
-    if ((cleanedValue.match(/\./g) || []).length > 1) return;
-
-    // Limit decimal places to 2
-    if (cleanedValue.includes(".")) {
-      const [whole, decimal] = cleanedValue.split(".");
-      if (decimal?.length > 2) return;
-    }
-
-    setAmount(cleanedValue);
+    setIsBalanceLoading(true);
     setError("");
+
+    try {
+      const response = await fetch(`http://localhost:8000/balance/${address}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setBalance(data.data.balance);
+      } else {
+        console.error("Error fetching balance:", data.error);
+        setError("Failed to fetch balance");
+      }
+    } catch (err) {
+      console.error("Error fetching balance:", err);
+      setError("Failed to fetch balance");
+    } finally {
+      setIsBalanceLoading(false);
+    }
   };
 
-  // Handle address input
-  const handleAddressChange = (value) => {
-    setAddress(value);
+  // Fetch balance on mount and when wallet changes
+  useEffect(() => {
+    if (w0?.address) {
+      fetchBalance();
+    }
+  }, [w0?.address]);
+
+  // Handle withdrawal
+  const handleWithdrawal = async () => {
+    if (!signer) {
+      setError("Please connect your wallet");
+      return;
+    }
+
+    if (!balance || balance <= 0) {
+      setError("No balance available for withdrawal");
+      return;
+    }
+
+    setIsLoading(true);
     setError("");
-  };
+    setTransactionHash("");
 
-  // Handle max button click
-  const handleMaxClick = () => {
-    setAmount(AVAILABLE_BALANCE.toString());
-    setError("");
-  };
-
-  // Validate Ethereum address
-  const isValidAddress = (address) => {
-    return /^0x[a-fA-F0-9]{40}$/.test(address);
-  };
-
-  // Handle withdrawal preview
-  const handlePreviewWithdrawal = () => {
-    const numAmount = parseFloat(amount);
-
-    if (!amount) {
-      setError("Please enter an amount");
-      return;
+    try {
+      const withdrawContract = new Contract(AIACONTRACTADDRESS, AIAABI, signer);
+      const res = await withdrawContract.withdrawFunds(Number(balance));
+      const tx = await res.getTransaction();
+      console.log(tx)
+      await tx.wait();
+      setTransactionHash(tx.hash);
+      // Refresh balance after successful withdrawal
+      fetchBalance();
+    } catch (err) {
+      console.error("Withdrawal error:", err);
+      setError(
+        err.message || "Failed to process withdrawal. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    if (isNaN(numAmount) || numAmount <= 0) {
-      setError("Please enter a valid amount");
-      return;
-    }
-
-    if (numAmount > AVAILABLE_BALANCE) {
-      setError("Amount exceeds available balance");
-      return;
-    }
-
-    if (!address) {
-      setError("Please enter a recipient address");
-      return;
-    }
-
-    if (!isValidAddress(address)) {
-      setError("Please enter a valid Ethereum address");
-      return;
-    }
-
-    // Handle withdrawal preview logic here
-    console.log("Preview withdrawal:", {
-      amount: numAmount,
-      address,
-    });
   };
 
   return (
@@ -98,12 +94,33 @@ const WithdrawUI = () => {
       </div>
       <div className="mx-auto mt-10">
         <div className="grid grid-cols-12 gap-8">
-          {/* Left Panel - Withdraw Form */}
+          {/* Left Panel - Withdraw Button */}
           <div className="col-span-6 bg-white rounded-[35px] p-8 flex flex-col">
-            {/* Title*/}
+            {/* Title */}
             <div className="flex items-center justify-between mb-12">
               <h2 className="text-2xl font-medium">Withdraw</h2>
+              <button
+                onClick={fetchBalance}
+                disabled={isBalanceLoading}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <RefreshCw
+                  className={`w-5 h-5 ${
+                    isBalanceLoading ? "animate-spin" : ""
+                  }`}
+                />
+              </button>
             </div>
+
+            {/* Success Alert */}
+            {transactionHash && (
+              <Alert className="mb-4 bg-green-50 border-green-200">
+                <AlertDescription className="text-green-800">
+                  Withdrawal successful! Transaction hash:{" "}
+                  <span className="font-mono break-all">{transactionHash}</span>
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Error Alert */}
             {error && (
@@ -115,68 +132,40 @@ const WithdrawUI = () => {
             {/* Form Content */}
             <div className="flex-1 flex flex-col justify-between">
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-500 mb-2">
-                    Amount
-                  </label>
-                  <div
-                    className={cn(
-                      "bg-white rounded-2xl p-4 border",
-                      error && error.includes("amount") && "border-red-500"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl text-gray-400">$</span>
-                      <input
-                        type="text"
-                        value={amount}
-                        onChange={(e) => handleAmountChange(e.target.value)}
-                        placeholder="Enter amount to withdraw"
-                        className="w-full text-xl bg-transparent outline-none"
-                      />
-                      <button
-                        onClick={handleMaxClick}
-                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        MAX
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-500 mb-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm text-gray-500">
                     Recipient Address
                   </label>
-                  <div
-                    className={cn(
-                      "bg-white rounded-2xl p-4 border",
-                      error && error.includes("address") && "border-red-500"
-                    )}
-                  >
-                    <input
-                      type="text"
-                      value={address}
-                      onChange={(e) => handleAddressChange(e.target.value)}
-                      placeholder="0x75d86ABf381f10276d..."
-                      className="w-full text-base bg-transparent outline-none"
-                    />
-                  </div>
+                  <ConnectedAddress />
                 </div>
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Available Balance</span>
                   <span className="font-medium">
-                    {AVAILABLE_BALANCE.toLocaleString()} USDC
+                    {isBalanceLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin inline" />
+                    ) : balance !== null ? (
+                      `${balance} USDC`
+                    ) : (
+                      "Connect wallet to view balance"
+                    )}
                   </span>
                 </div>
               </div>
 
               <button
-                onClick={handlePreviewWithdrawal}
-                className="w-full bg-black text-white font-medium py-4 rounded-2xl hover:bg-black/90 transition-colors mt-8"
+                onClick={handleWithdrawal}
+                disabled={isLoading || !balance || balance <= 0}
+                className="w-full bg-black text-white font-medium py-4 rounded-2xl hover:bg-black/90 transition-colors mt-8 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Preview Withdrawal
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing Withdrawal...
+                  </>
+                ) : (
+                  "Withdraw Now"
+                )}
               </button>
             </div>
           </div>
@@ -185,9 +174,7 @@ const WithdrawUI = () => {
           <div className="col-span-6 grid grid-rows-2 gap-8">
             {/* Top Info Card */}
             <div className="bg-white rounded-[35px] p-8 relative overflow-hidden">
-              {/* Bento-style background elements */}
               <div className="absolute inset-0 pointer-events-none">
-                {/* Main grid pattern */}
                 <div className="absolute bottom-0 right-0 w-52 h-32 grid grid-cols-4 gap-2 p-4">
                   <div className="w-full h-full rounded-lg bg-gray-50/80"></div>
                   <div className="w-full h-full rounded-lg border-2 border-gray-100"></div>
@@ -198,7 +185,6 @@ const WithdrawUI = () => {
                   <div className="w-full h-full rounded-lg border-2 border-gray-100 rotate-3"></div>
                   <div className="w-full h-full rounded-lg bg-gray-50/70"></div>
                 </div>
-                {/* Floating elements */}
                 <div className="absolute bottom-6 right-48 w-8 h-8 rounded-full bg-gray-50/40"></div>
                 <div className="absolute bottom-20 right-36 w-6 h-6 rounded-full border-2 border-gray-100"></div>
                 <div className="absolute bottom-8 right-28 w-4 h-4 rounded-lg bg-gray-50/60 rotate-45"></div>
@@ -219,9 +205,7 @@ const WithdrawUI = () => {
 
             {/* Bottom Info Card */}
             <div className="bg-[#00C670]/80 rounded-[35px] p-8 relative overflow-hidden">
-              {/* Bento-style background elements */}
               <div className="absolute inset-0 pointer-events-none">
-                {/* Main grid pattern */}
                 <div className="absolute top-4 right-4 w-52 h-full grid grid-cols-3 gap-3 p-4">
                   <div className="w-full h-16 rounded-lg bg-white/10"></div>
                   <div className="w-full h-16 rounded-lg border-2 border-white/20 rotate-2"></div>
@@ -233,7 +217,6 @@ const WithdrawUI = () => {
                   <div className="w-full h-16 rounded-lg border-2 border-white/20 rotate-3"></div>
                   <div className="w-full h-16 rounded-lg bg-white/10"></div>
                 </div>
-                {/* Floating elements */}
                 <div className="absolute top-12 right-60 w-8 h-8 rounded-full border-2 border-white/20"></div>
                 <div className="absolute bottom-16 right-56 w-6 h-6 rounded-lg bg-white/10 rotate-45"></div>
                 <div className="absolute top-28 right-52 w-4 h-4 rounded-full bg-white/20"></div>
