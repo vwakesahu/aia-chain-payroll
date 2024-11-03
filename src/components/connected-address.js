@@ -6,6 +6,10 @@ const ConnectedAddress = () => {
   const { address } = useWalletContext();
   const [copied, setCopied] = useState(false);
 
+  if (!address) {
+    return null;
+  }
+
   const truncatedAddress = `${address.substring(0, 6)}...${address.substring(
     address.length - 4
   )}`;

@@ -327,34 +327,64 @@ const DistributeUI = () => {
 
           {/* Right Panel - Information */}
           <div className="col-span-5 grid grid-rows-2 gap-8">
-            {/* Top Info Card */}
-            <div className="bg-white rounded-[35px] p-8">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">
-                    Total Distributed
-                  </p>
-                  <p className="text-3xl font-medium">$5.2M</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
-                  <span className="text-white text-lg">↑</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Info Card */}
-            <div className="bg-[#00C670]/70 rounded-[35px] p-8">
-              <div className="flex flex-col justify-between h-full">
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center mb-12">
-                  <span className="text-white text-lg">$</span>
-                </div>
-                <div>
-                  <p className="mb-3">Average Distribution</p>
-                  <div className="text-5xl font-medium">$847</div>
-                </div>
-              </div>
-            </div>
+      {/* Top Info Card */}
+      <div className="bg-white rounded-[35px] p-8 relative overflow-hidden">
+        {/* Bento-style background elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Main grid pattern */}
+          <div className="absolute bottom-0 right-0 w-40 h-28 grid grid-cols-3 gap-2 p-4">
+            <div className="w-full h-full rounded-lg bg-gray-50"></div>
+            <div className="w-full h-full rounded-lg border-2 border-gray-100"></div>
+            <div className="w-full h-full rounded-lg bg-gray-50/50"></div>
+            <div className="w-full h-full rounded-lg border-2 border-gray-100"></div>
+            <div className="w-full h-full rounded-lg bg-gray-50/80"></div>
+            <div className="w-full h-full rounded-lg border-2 border-gray-100 rotate-3"></div>
           </div>
+          {/* Floating elements */}
+          <div className="absolute bottom-4 right-36 w-6 h-6 rounded-full border-2 border-gray-100"></div>
+          <div className="absolute bottom-16 right-28 w-4 h-4 rounded-full bg-gray-50/60"></div>
+        </div>
+
+        <div className="flex items-start justify-between relative z-10">
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Total Distributed</p>
+            <p className="text-3xl font-medium">$5.2M</p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
+            <span className="text-white text-lg">↑</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Info Card */}
+      <div className="bg-[#00C670]/70 rounded-[35px] p-8 relative overflow-hidden">
+        {/* Bento-style background elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Main grid pattern */}
+          <div className="absolute top-4 right-4 w-40 h-full grid grid-cols-2 gap-3 p-4">
+            <div className="w-full h-14 rounded-lg bg-white/5"></div>
+            <div className="w-full h-14 rounded-lg border-2 border-white/20"></div>
+            <div className="w-full h-14 rounded-lg border-2 border-white/20 rotate-2"></div>
+            <div className="w-full h-14 rounded-lg bg-white/10"></div>
+            <div className="w-full h-14 rounded-lg bg-white/5"></div>
+            <div className="w-full h-14 rounded-lg border-2 border-white/20 -rotate-2"></div>
+          </div>
+          {/* Floating elements */}
+          <div className="absolute top-10 right-48 w-6 h-6 rounded-full border-2 border-white/20"></div>
+          <div className="absolute bottom-10 right-44 w-4 h-4 rounded-full bg-white/10"></div>
+        </div>
+
+        <div className="flex flex-col justify-between h-full relative z-10">
+          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-12">
+            <span className="text-black text-lg">$</span>
+          </div>
+          <div>
+            <p className="mb-3 text-white">Average Distribution</p>
+            <div className="text-5xl font-medium text-white">$847</div>
+          </div>
+        </div>
+      </div>
+    </div>
         </div>
       </div>
     </div>

@@ -13,11 +13,11 @@ const WithdrawUI = () => {
   const [error, setError] = useState("");
   const { w0 } = useWalletContext();
   useEffect(() => {
-    if(!w0) return;
+    if (!w0) return;
     changeWallet(w0, chainsId.FHENIX);
   }, [w0]);
 
-  console.log(w0?.chainId)
+  console.log(w0?.chainId);
 
   // Constants
   const AVAILABLE_BALANCE = 1000; // USDC
@@ -188,8 +188,27 @@ const WithdrawUI = () => {
           {/* Right Panel - Information */}
           <div className="col-span-6 grid grid-rows-2 gap-8">
             {/* Top Info Card */}
-            <div className="bg-white rounded-[35px] p-8">
-              <div className="flex items-start justify-between">
+            <div className="bg-white rounded-[35px] p-8 relative overflow-hidden">
+              {/* Bento-style background elements */}
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Main grid pattern */}
+                <div className="absolute bottom-0 right-0 w-52 h-32 grid grid-cols-4 gap-2 p-4">
+                  <div className="w-full h-full rounded-lg bg-gray-50/80"></div>
+                  <div className="w-full h-full rounded-lg border-2 border-gray-100"></div>
+                  <div className="w-full h-full rounded-lg bg-gray-50/50"></div>
+                  <div className="w-full h-full rounded-lg border-2 border-gray-100 -rotate-3"></div>
+                  <div className="w-full h-full rounded-lg border-2 border-gray-100"></div>
+                  <div className="w-full h-full rounded-lg bg-gray-50/60"></div>
+                  <div className="w-full h-full rounded-lg border-2 border-gray-100 rotate-3"></div>
+                  <div className="w-full h-full rounded-lg bg-gray-50/70"></div>
+                </div>
+                {/* Floating elements */}
+                <div className="absolute bottom-6 right-48 w-8 h-8 rounded-full bg-gray-50/40"></div>
+                <div className="absolute bottom-20 right-36 w-6 h-6 rounded-full border-2 border-gray-100"></div>
+                <div className="absolute bottom-8 right-28 w-4 h-4 rounded-lg bg-gray-50/60 rotate-45"></div>
+              </div>
+
+              <div className="flex items-start justify-between relative z-10">
                 <div>
                   <p className="text-sm text-gray-500 mb-2">
                     Total Withdrawals
@@ -203,14 +222,34 @@ const WithdrawUI = () => {
             </div>
 
             {/* Bottom Info Card */}
-            <div className="bg-[#00C670]/80 rounded-[35px] p-8">
-              <div className="flex flex-col justify-between h-full">
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center mb-12">
-                  <span className="text-white text-lg">$</span>
+            <div className="bg-[#00C670]/80 rounded-[35px] p-8 relative overflow-hidden">
+              {/* Bento-style background elements */}
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Main grid pattern */}
+                <div className="absolute top-4 right-4 w-52 h-full grid grid-cols-3 gap-3 p-4">
+                  <div className="w-full h-16 rounded-lg bg-white/10"></div>
+                  <div className="w-full h-16 rounded-lg border-2 border-white/20 rotate-2"></div>
+                  <div className="w-full h-16 rounded-lg bg-white/5"></div>
+                  <div className="w-full h-16 rounded-lg border-2 border-white/20"></div>
+                  <div className="w-full h-16 rounded-lg bg-white/10 -rotate-2"></div>
+                  <div className="w-full h-16 rounded-lg border-2 border-white/20"></div>
+                  <div className="w-full h-16 rounded-lg bg-white/5"></div>
+                  <div className="w-full h-16 rounded-lg border-2 border-white/20 rotate-3"></div>
+                  <div className="w-full h-16 rounded-lg bg-white/10"></div>
+                </div>
+                {/* Floating elements */}
+                <div className="absolute top-12 right-60 w-8 h-8 rounded-full border-2 border-white/20"></div>
+                <div className="absolute bottom-16 right-56 w-6 h-6 rounded-lg bg-white/10 rotate-45"></div>
+                <div className="absolute top-28 right-52 w-4 h-4 rounded-full bg-white/20"></div>
+              </div>
+
+              <div className="flex flex-col justify-between h-full relative z-10">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-12">
+                  <span className="text-black text-lg">$</span>
                 </div>
                 <div>
-                  <p className="mb-3">Average Withdrawal</p>
-                  <div className="text-5xl font-medium">
+                  <p className="mb-3 text-white">Average Withdrawal</p>
+                  <div className="text-5xl font-medium text-white">
                     ${AVERAGE_WITHDRAWAL}
                   </div>
                 </div>
