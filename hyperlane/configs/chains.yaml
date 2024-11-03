@@ -1,0 +1,15 @@
+aia:
+  name: aia
+  chainId: 1320
+  domainId: 1320
+  protocol: ethereum
+  rpcUrls:
+    - http: https://aia-dataseed1-testnet.aiachain.org
+rivest:
+  name: rivest
+  chainId: 21097
+  domainId: 21097
+  protocol: ethereum
+  rpcUrls:
+    - http: https://validator.rivest.inco.org
+
