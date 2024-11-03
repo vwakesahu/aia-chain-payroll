@@ -5,34 +5,34 @@ const HeadingWithAvatars = () => {
   return (
     <div className='py-32 grid place-items-center'>
       <div className="text-[66px] text-center leading-[1.1] tracking-[-0.02em]">
-        Trusted by
+        Built with
         <br />
-        dev's like{' '}
+        protocols{' '}
         <span className="inline-flex items-center align-middle">
           <Image
-            src="/user1.jpeg"
+            src="/user1.png"
             alt="Anonymous user 1"
             width={64}
             height={64}
-            className="rounded-full border-4 border-white -mr-6"
+            className="rounded-full border-4 border-black -mr-6"
           />
           <Image
             src="/user2.png"
             alt="Anonymous user 2"
             width={64}
             height={64}
-            className="rounded-full border-4 border-white -mr-6"
+            className="rounded-full border-4 border-black -mr-6"
           />
           <Image
             src="/user3.png"
             alt="Anonymous user 3"
             width={64}
             height={64}
-            className="rounded-full border-4 border-white -mr-6"
+            className="rounded-full border-4 border-black -pr-6"
           />
-          <div className="w-16 h-16 rounded-full bg-black border-4 border-white flex items-center justify-center">
+          {/* <div className="w-16 h-16 rounded-full bg-black border-4 border-black flex items-center justify-center">
             <span className="text-white text-4xl">+</span>
-          </div>
+          </div> */}
         </span>
         {' '}for
         <br />
